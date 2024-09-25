@@ -1,2 +1,2 @@
-# banking-admin-system
-This C program provides a simple banking system that enables users to create accounts, log in, and perform basic banking operations, with secure password hashing and user input validation.
+# Banking-admin-system
+This C program implements a simple banking system that allows users to create accounts, log in, and perform basic banking operations such as withdrawing, depositing, and checking their balance. It features a user-friendly menu for navigation and ensures input validation to enhance reliability. Passwords are securely hashed using SHA-256 before storage, and the program utilizes functions from an external file for account management, though its lengthy main function could benefit from refactoring into smaller, more manageable functions.
