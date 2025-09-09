@@ -7,7 +7,7 @@
 #include <CommonCrypto/CommonDigest.h>
 
 // Maximum number of accounts 
-    #define MAXaccounts 500        // Paul: Probably more standard to use a #define for a constant. Using a variable suggests the value can change. 
+    #define MAXaccounts 600     // Paul: Probably more standard to use a #define for a constant. Using a variable suggests the value can change. 
     #define PASSWORD_LENGTH 32
     #define NAME_LENGTH 25
 
