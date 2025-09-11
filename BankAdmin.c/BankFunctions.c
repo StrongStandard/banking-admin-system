@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 #include <stdbool.h>
 #include <time.h>
@@ -7,7 +8,7 @@
 #include <CommonCrypto/CommonDigest.h>
 
 // Maximum number of accounts 
-    #define MAXaccounts 1000     // Paul: Probably more standard to use a #define for a constant. Using a variable suggests the value can change. 
+    #define MAXaccounts 100        // Paul: Probably more standard to use a #define for a constant. Using a variable suggests the value can change. 
     #define PASSWORD_LENGTH 32
     #define NAME_LENGTH 25
 
@@ -18,28 +19,18 @@
         char accountHolder[25];
         float balance;
         unsigned char passwordHash[CC_SHA256_DIGEST_LENGTH];
-    } BankAccount;                              // Paul:    Really you are defining a new type here and it makes the code neater to do that.
-                                    //          For example:
-                                    //                          typedef struct 
-                                    //                          {
-                                    //                              int accountNumber;
-                                    //                              char accountHolder[25];
-                                    //                              float balance; 
-                                    //                              unsigned char passwordHash[CC_SHA256_DIGEST_LENGTH];
-                                    //                          } BankAccount; 
-                                    // 
-                                    // Now you can use BankAccount as a variable type:
-                                    // e.g. BankAccount new_account;
+    } BankAccount;
+                                  
 // prototypes
 void createAccount(BankAccount *account, int accountNumber, char accountHolder[], float initialBalance, unsigned char password[]);
 void deposit(BankAccount *account);
 void withdraw(BankAccount *account);
 void checkBalance(BankAccount *account);
-bool checkPassword(BankAccount *account);
+bool checkPassword(BankAccount *account,char inputPassword[32]);
 bool checkUser(BankAccount *account, char name[NAME_LENGTH]);
 void saveAccounts(BankAccount *account, int numAccounts);
 int loadAccounts(BankAccount *accounts, int maxAccounts);
-void get_password_from_user(char password[PASSWORD_LENGTH]);
+void get_password_from_user(char password[PASSWORD_LENGTH],char passwordCheck[PASSWORD_LENGTH]);
 void get_user_name(char name[NAME_LENGTH]);
 int get_matching_account(BankAccount *accounts, char name[NAME_LENGTH], int numAccounts);
 void sha256_hash(const char *password, unsigned char hash[CC_SHA256_DIGEST_LENGTH]);
@@ -63,7 +54,7 @@ void deposit(BankAccount *account)
 {
     float newBalance = 0.00;
     printf("How much would you like to deposit? \n");
-    scanf("%f", &newBalance);       // Paul: Perhaps check the return value is 1
+    scanf("%f", &newBalance);       
     getchar();
     account -> balance += newBalance;
     printf("\nDeposit was succesful, new balance is %.2f£. Press ENTER to continue. \n", account -> balance);
@@ -76,7 +67,7 @@ void withdraw(BankAccount *account)
     
     float amount = 0.00;
     printf("How much would you like to withdraw? \n");
-    scanf("%f", &amount);       // Paul: Perhaps check the return value is 1
+    scanf("%f", &amount);      
     getchar();
     if(amount <= account -> balance)
     {
@@ -100,10 +91,11 @@ void checkBalance(BankAccount *account)
 
 // Function to check if the password is correct
 
-bool checkPassword(BankAccount *account)
+bool checkPassword(BankAccount *account,char inputPassword[32])
 {
-    char inputPassword[32];
+
     printf("Type your password for account: %d: ", account->accountNumber);
+    //inputPassword = getpass("Type your password for account: ");
     scanf("%s", inputPassword);
 
     // Hash the input password using SHA-256
@@ -127,7 +119,7 @@ bool checkPassword(BankAccount *account)
 
 void saveAccounts(BankAccount *account, int numAccounts)
 {
-    FILE *file = fopen("/Users/martincerveny/Desktop/VScode/C_Programming/Projects.c/accounts.txt", "w");
+    FILE *file = fopen("/Users/martincerveny/BankAdmin/accounts.txt", "w");
 
     if (file == NULL)
     {
@@ -157,7 +149,7 @@ void saveAccounts(BankAccount *account, int numAccounts)
 
 int loadAccounts(BankAccount *accounts, int maxAccounts)
 {
-    FILE *file = fopen("/Users/martincerveny/Desktop/VScode/C_Programming/Projects.c/accounts.txt", "r");
+    FILE *file = fopen("/Users/martincerveny/BankAdmin/accounts.txt", "r");
 
     if (file == NULL)
     {
@@ -204,21 +196,32 @@ int loadAccounts(BankAccount *accounts, int maxAccounts)
 void get_user_name(char name[NAME_LENGTH])
 {
    int InvalidcharacterCounter = 0;
+   int Spaces = 0;
             do
             {
                 InvalidcharacterCounter = 0;
+                Spaces = 0;
                 // Get account name
                 printf("Enter your full name: ");
-                 
-                fgets(name, NAME_LENGTH - 1, stdin); 
+                fgets(name, NAME_LENGTH - 1, stdin);
+                name[strlen(name) - 1] = '\0';
                 for (int l = 0; l < strlen(name); l++)
                 {                                      
                     name[l] = tolower(name[l]);
-                    
+                    // printf("%c",name[l]);
                     if(!isalpha(name[l]) && name[l] != ' ')
                     {
                         InvalidcharacterCounter++;
-                    }  
+                    }
+                    if(name[l] == ' ')
+                    {
+                            Spaces++;
+                    }
+                    if(Spaces > 1)
+                    {
+                        InvalidcharacterCounter++;
+                    }
+
                                                   
                 }  
                 if(InvalidcharacterCounter > 0)
@@ -234,19 +237,15 @@ void get_user_name(char name[NAME_LENGTH])
 
 int get_matching_account(BankAccount *accounts, char name[NAME_LENGTH], int numAccounts)
 {
-
-          // Paul: This should be a bool and perhaps "account_found" is a better variable name
-            
             
             printf("Enter account holder: ");
             fgets(name, NAME_LENGTH - 1, stdin);
-            name[strcspn(name, "\n")] = '\0'; /////////
+            name[strcspn(name, "\n")] = '\0'; 
 
             for (int i = 0; i < strlen(name); i++)
             {
                 name[i] = tolower(name[i]);
             }
-                    
                     
             for(int j = 0; j < numAccounts; j++)
             {
@@ -266,16 +265,17 @@ int get_matching_account(BankAccount *accounts, char name[NAME_LENGTH], int numA
 
 // Function to get password from user
 
-void get_password_from_user(char password[PASSWORD_LENGTH])
+void get_password_from_user(char password[PASSWORD_LENGTH],char passwordCheck[PASSWORD_LENGTH])
 {
     bool validInput = false;
-    char passwordCheck[PASSWORD_LENGTH] = "";
         do
         {    // Get account password
-            printf("Create new password: ");
-            scanf("%s", password);
+            // printf("Create new password: ");
+            password = getpass("Create new password: ");
+            printf("%s",password);
+            //scanf("%s", password);
 
-            bool is_at_least_one_uppercase = false ;    // Paul: It makes more sense for this to be a bool type. Also "is_at_least_one_uppercase" is a better name. At first I thought it meant is the whole string uppercase. 
+            bool is_at_least_one_uppercase = false ; 
             for(int p = 0; p < strlen(password); p++)
             {
 
@@ -297,8 +297,10 @@ void get_password_from_user(char password[PASSWORD_LENGTH])
         } while(validInput == false);
         do
         {
-            printf("Confirm the password: ");
-            scanf("%s", passwordCheck);
+            //printf("Confirm the password: ");
+            //scanf("%s", passwordCheck);
+            passwordCheck = getpass("Confirm the password: ");
+            printf("%s",passwordCheck);
 
         } while(strcmp(passwordCheck, password) != 0);
 
@@ -311,4 +313,5 @@ void sha256_hash(const char *password, unsigned char hash[CC_SHA256_DIGEST_LENGT
     CC_SHA256_Init(&sha256);
     CC_SHA256_Update(&sha256, password, strlen(password));
     CC_SHA256_Final(hash, &sha256);
+
 }
