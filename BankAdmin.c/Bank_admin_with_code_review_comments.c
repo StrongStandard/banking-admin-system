@@ -20,7 +20,7 @@ int main()
     char name[NAME_LENGTH] = ""; 
     char password[PASSWORD_LENGTH] = ""; 
     char passwordCheck[PASSWORD_LENGTH] = "";
-    char inputPassword[32];
+    char inputPassword[PASSWORD_LENGTH];
 
     // global options menu
     do
@@ -99,8 +99,8 @@ int main()
 
                 if(account_counter != -1)      
                 {   
-                    BankAccount * account = &accounts[account_counter];
-                                       
+                    BankAccount *account = &accounts[account_counter];
+                    printf("Type your password for account %d ", account->accountNumber);
                         do
                         {
                             if(checkPassword(account,inputPassword))
