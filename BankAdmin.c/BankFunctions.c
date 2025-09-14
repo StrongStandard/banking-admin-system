@@ -9,7 +9,7 @@
 
 // Maximum number of accounts 
     #define MAXaccounts 100        // Paul: Probably more standard to use a #define for a constant. Using a variable suggests the value can change. 
-    #define PASSWORD_LENGTH 32
+    #define PASSWORD_LENGTH 15
     #define NAME_LENGTH 25
 
 // Define a structure to represent a bank account with it's attributes
@@ -26,7 +26,7 @@ void createAccount(BankAccount *account, int accountNumber, char accountHolder[]
 void deposit(BankAccount *account);
 void withdraw(BankAccount *account);
 void checkBalance(BankAccount *account);
-bool checkPassword(BankAccount *account,char inputPassword[32]);
+bool checkPassword(BankAccount *account,char inputPassword[PASSWORD_LENGTH]);
 bool checkUser(BankAccount *account, char name[NAME_LENGTH]);
 void saveAccounts(BankAccount *account, int numAccounts);
 int loadAccounts(BankAccount *accounts, int maxAccounts);
@@ -91,12 +91,13 @@ void checkBalance(BankAccount *account)
 
 // Function to check if the password is correct
 
-bool checkPassword(BankAccount *account,char inputPassword[32])
+bool checkPassword(BankAccount *account,char inputPassword[PASSWORD_LENGTH])
 {
 
-    printf("Type your password for account: %d: ", account->accountNumber);
-    //inputPassword = getpass("Type your password for account: ");
-    scanf("%s", inputPassword);
+    //printf("Type your password for account %d ", account->accountNumber);
+    char *input_temp_password = getpass("Type your password for account: ");
+    memcpy(inputPassword,input_temp_password,PASSWORD_LENGTH);
+    //scanf("%s", inputPassword);
 
     // Hash the input password using SHA-256
 
@@ -129,7 +130,7 @@ void saveAccounts(BankAccount *account, int numAccounts)
 
     for (int i = 0; i < numAccounts; i++)
     {
-        fprintf(file, "%d %s %.2f ", account[i].accountNumber, account[i].accountHolder, account[i].balance);
+        fprintf(file, "%d,%s,%.2f,", account[i].accountNumber, account[i].accountHolder, account[i].balance);
 
 
         // Save the hashed password as hexadecimal in the file
@@ -237,16 +238,16 @@ void get_user_name(char name[NAME_LENGTH])
 
 int get_matching_account(BankAccount *accounts, char name[NAME_LENGTH], int numAccounts)
 {
-            
+
             printf("Enter account holder: ");
             fgets(name, NAME_LENGTH - 1, stdin);
-            name[strcspn(name, "\n")] = '\0'; 
+            name[strcspn(name, "\n")] = '\0';
 
             for (int i = 0; i < strlen(name); i++)
             {
                 name[i] = tolower(name[i]);
             }
-                    
+
             for(int j = 0; j < numAccounts; j++)
             {
                         // If user exists 
@@ -254,9 +255,10 @@ int get_matching_account(BankAccount *accounts, char name[NAME_LENGTH], int numA
                 {
                     return j;
                 }
+            printf("%s/n",accounts[j].accountHolder);
             }
             
-                
+            printf("%s/n",name);
             printf("User not found! Try again.\n");
 
             return -1; 
@@ -270,11 +272,9 @@ void get_password_from_user(char password[PASSWORD_LENGTH],char passwordCheck[PA
     bool validInput = false;
         do
         {    // Get account password
-            // printf("Create new password: ");
-            password = getpass("Create new password: ");
-            printf("%s",password);
-            //scanf("%s", password);
-
+            char *password_temp = getpass("Create new password: ");
+            memcpy(password,password_temp,PASSWORD_LENGTH);
+     
             bool is_at_least_one_uppercase = false ; 
             for(int p = 0; p < strlen(password); p++)
             {
@@ -297,10 +297,9 @@ void get_password_from_user(char password[PASSWORD_LENGTH],char passwordCheck[PA
         } while(validInput == false);
         do
         {
-            //printf("Confirm the password: ");
-            //scanf("%s", passwordCheck);
-            passwordCheck = getpass("Confirm the password: ");
-            printf("%s",passwordCheck);
+         
+            char *password_temp2 = getpass("Confirm the password: ");
+            memcpy(passwordCheck, password_temp2, PASSWORD_LENGTH);
 
         } while(strcmp(passwordCheck, password) != 0);
 
