@@ -96,11 +96,10 @@ int main()
         {  
              
                 account_counter = get_matching_account(accounts, name, numAccounts);
-
                 if(account_counter != -1)      
                 {   
                     BankAccount *account = &accounts[account_counter];
-                    printf("Type your password for account %d ", account->accountNumber);
+                    //printf("Type your password for account %d ", account->accountNumber);
                         do
                         {
                             if(checkPassword(account,inputPassword))
